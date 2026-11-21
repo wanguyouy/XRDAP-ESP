@@ -6,6 +6,28 @@ XRDAP-ESP is CMSIS-DAP v2 debug probe firmware for the Espressif ESP32-S3, ESP32
 
 An introduction video of the XR-DAP family is on [YouTube](https://youtu.be/H6S_sdkS8vs).
 
+## Status of this fork (2026-11-21)
+
+This repository is a fork of [Jiu-xiao/XRDAP-ESP](https://github.com/Jiu-xiao/XRDAP-ESP) (`wanguyouy/XRDAP-ESP`) with two fixes to the flashing flow that Keil MDK uses on the ESP32-S3 probe; the firmware version is 0.6.1.
+
+| Fix | Commit | Reason |
+|---|---|---|
+| DAP v2 packets of 512 bytes | `d40fccf` | Keil's CMSIS-DAP v2 driver always reads responses into a 512-byte buffer. The probe declared 1024 bytes, so the 795-byte FLM readback left 283 orphan bytes and every later response was shifted, showing "Cannot Load Flash Programming Algorithm!" and RDDI-DAP Error |
+| Retry count scaled by SWCLK | `4b27e17` | In Keil's `TransferConfigure`, wait_retry is a count (one attempt is about 46 SWCLKs), which covers under 1 ms at 5 MHz, while the target's AHB-AP WAITs for about 2.8 ms during flash erase, showing "Erase Failed!" and "Cannot access Memory (@0xe000edf0)". The firmware raises the retry count so it covers at least 100 ms at the current SWCLK; the host still sends 100, the fix applies on the probe, and wait_retry 0 stays 0 |
+
+Verified on hardware:
+
+- CIU32F003F5P8 (Keil 5.42, `DbgClock` 5 MHz): four runs in a row of `Erase Done. Programming Done. Verify OK`; 1 MHz works as well.
+- CW32L010F8 (Keil 5.42, 1 MHz): flashing, verify and SWD access all work. With no hardware reset pin wired on the target, Keil's "Reset and Run" does not reset (it pulses nRESET); use SYSRESETREQ instead, or wire RST to the probe.
+
+The firmware is on the [v0.6.1 release page](https://github.com/wanguyouy/XRDAP-ESP/releases/tag/v0.6.1). The merged image is written at address 0; over the on-board USB-to-serial (CH343, COM10 here) no manual download mode is needed:
+
+```
+python -m esptool --chip esp32s3 -p COM10 -b 921600 write_flash 0x0 xrdap-esp32-s3.bin
+```
+
+After flashing, check the CMSIS-DAP `DAP_Info` values: `0x09` returns `0.6.1` and `0xFF` returns 512. The firmware is built only on GitHub Actions (the `build-s3` workflow, ESP-IDF v5.5.2), and the artifact is `xrdap-esp32-s3`. Pushes to this repository do not trigger that workflow, so run `workflow_dispatch` from the Actions tab and download the artifact from the run.
+
 ## Boards
 
 | Board | Firmware file | Connection to the computer |

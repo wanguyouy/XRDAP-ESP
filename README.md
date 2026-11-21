@@ -6,6 +6,28 @@ XRDAP-ESP 是运行在乐鑫 ESP32-S3、ESP32-S2、ESP32-C3 和传统 ESP32 上�
 
 XR-DAP 系列的介绍视频见 [Bilibili](https://www.bilibili.com/video/BV17oWx6YEde/)。
 
+## 本仓库的进度（2026-11-21）
+
+本仓库是 [Jiu-xiao/XRDAP-ESP](https://github.com/Jiu-xiao/XRDAP-ESP) 的 fork（`wanguyouy/XRDAP-ESP`），在 ESP32-S3 探针上针对 Keil MDK 的烧录流程加了两处修复，当前固件版本 0.6.1。
+
+| 修复 | 提交 | 原因 |
+|---|---|---|
+| DAP v2 包长改为 512 字节 | `d40fccf` | Keil 的 CMSIS-DAP v2 驱动固定用 512 字节缓冲区读响应。探针原先声明 1024 字节，795 字节的 FLM 回读留下 283 字节残留，之后每个响应都错位，表现为 “Cannot Load Flash Programming Algorithm!” 和 RDDI-DAP Error |
+| 重试次数按 SWCLK 缩放 | `4b27e17` | Keil 的 `TransferConfigure` 里 wait_retry 是次数（一次约 46 个 SWCLK），5 MHz 下只能覆盖不到 1 ms，而目标在擦除期间 AHB-AP 会 WAIT 约 2.8 ms，表现为 “Erase Failed!” 和 “Cannot access Memory (@0xe000edf0)”。固件按当前 SWCLK 把重试次数抬到至少覆盖 100 ms；主机仍发 100 次，修正在探针侧生效，wait_retry 为 0 时保持 0 |
+
+已实测：
+
+- CIU32F003F5P8（Keil 5.42，`DbgClock` 5 MHz）连续 4 次 `Erase Done. Programming Done. Verify OK`；1 MHz 同样正常。
+- CW32L010F8（Keil 5.42，1 MHz）烧录、校验和 SWD 读写正常。目标板没接硬件复位脚时，Keil 的 “Reset and Run” 不会复位（它发出的是 nRESET 脉冲），可以改用 SYSRESETREQ，或把 RST 接到探针。
+
+固件见 [v0.6.1 发布页](https://github.com/wanguyouy/XRDAP-ESP/releases/tag/v0.6.1)。合并镜像从地址 0 写入；经板上 USB 转串口（CH343，本例为 COM10）烧录不需要手动进下载模式：
+
+```
+python -m esptool --chip esp32s3 -p COM10 -b 921600 write_flash 0x0 xrdap-esp32-s3.bin
+```
+
+写入后用 CMSIS-DAP 的 `DAP_Info` 核对：`0x09` 返回 `0.6.1`，`0xFF` 返回 512。固件在 GitHub Actions 上编译（`build-s3` 工作流，ESP-IDF v5.5.2），产物为 `xrdap-esp32-s3`。本仓库的 push 不会触发该工作流，需要在 Actions 里手动运行 `workflow_dispatch` 再从运行记录下载 artifact。
+
 ## 板子
 
 | 板子 | 固件文件 | 与电脑的连接 |
