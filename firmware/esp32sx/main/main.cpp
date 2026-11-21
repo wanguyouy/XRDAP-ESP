@@ -41,6 +41,7 @@
 #include "restart.hpp"
 #include "status_panel.hpp"
 #include "swd_engine.hpp"
+#include "swd_wait_retry.hpp"
 #include "uart_console.hpp"
 #include "xrdap/probe/family.hpp"
 #include "xrdap/serial/serial_link.hpp"
@@ -71,8 +72,13 @@ void RequireStartup(bool ready)
   }
 }
 
+// SWD 引擎外加 WAIT 重试下限：主机按次数设置重试，高时钟下覆盖时间不够。
+// SWD engine with a WAIT retry floor: host retry counts cover too little time at high
+// clocks.
+using SwdPort = WaitRetrySwd<SwdEngine>;
+
 using DapBase =
-    LibXR::USB::DapLinkV2Class<SwdEngine, Config::kDapPacketSize, Config::kDapPacketCount,
+    LibXR::USB::DapLinkV2Class<SwdPort, Config::kDapPacketSize, Config::kDapPacketCount,
                                Config::kDapPacketSize>;
 
 // USB 的 DAP 接口，另外数 USB 总线复位：计数变了，USB 的会话就结束（拔线、主机复位）/
@@ -89,7 +95,7 @@ struct SwdSet
                      Config::kPadDriveStrength};
   DedicGpioPin swdio{Config::kSwdioGpio, /*bidirectional=*/true, /*pull_up=*/true,
                      Config::kPadDriveStrength};
-  SwdEngine swd{swclk, swdio, CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ * 1000000U};
+  SwdPort swd{swclk, swdio, CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ * 1000000U};
 };
 
 SwdSet& GetSwdSet()

@@ -96,7 +96,7 @@ uint32_t SwdFastMeasureHalfX16(size_t level, const SwdFastPins& pins);
 /// @note 非线程安全；所有方法只能由同一个任务在创建 swclk、swdio 的核上调用 / Not
 ///       thread-safe; call every method from one task on the core that created swclk and
 ///       swdio.
-class SwdEngine final : public LibXR::Debug::Swd
+class SwdEngine : public LibXR::Debug::Swd
 {
  public:
   using Request = LibXR::Debug::SwdProtocol::Request;
