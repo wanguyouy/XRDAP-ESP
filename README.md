@@ -26,7 +26,7 @@ XR-DAP 系列的介绍视频见 [Bilibili](https://www.bilibili.com/video/BV17oW
 python -m esptool --chip esp32s3 -p COM10 -b 921600 write_flash 0x0 xrdap-esp32-s3.bin
 ```
 
-写入后用 CMSIS-DAP 的 `DAP_Info` 核对：`0x09` 返回 `0.6.1`，`0xFF` 返回 512。固件在 GitHub Actions 上编译（`build-s3` 工作流，ESP-IDF v5.5.2），产物为 `xrdap-esp32-s3`。本仓库的 push 不会触发该工作流，需要在 Actions 里手动运行 `workflow_dispatch` 再从运行记录下载 artifact。
+写入后用 CMSIS-DAP 的 `DAP_Info` 核对：`0x09`（产品固件版本）返回 `0.6.1`。固件在 GitHub Actions 上编译（`build-s3` 工作流，ESP-IDF v5.5.2），产物为 `xrdap-esp32-s3`。本仓库的 push 不会触发该工作流，需要在 Actions 里手动运行 `workflow_dispatch` 再从运行记录下载 artifact。
 
 ## 板子
 

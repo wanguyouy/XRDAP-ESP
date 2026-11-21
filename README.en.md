@@ -26,7 +26,7 @@ The firmware is on the [v0.6.1 release page](https://github.com/wanguyouy/XRDAP-
 python -m esptool --chip esp32s3 -p COM10 -b 921600 write_flash 0x0 xrdap-esp32-s3.bin
 ```
 
-After flashing, check the CMSIS-DAP `DAP_Info` values: `0x09` returns `0.6.1` and `0xFF` returns 512. The firmware is built only on GitHub Actions (the `build-s3` workflow, ESP-IDF v5.5.2), and the artifact is `xrdap-esp32-s3`. Pushes to this repository do not trigger that workflow, so run `workflow_dispatch` from the Actions tab and download the artifact from the run.
+After flashing, check CMSIS-DAP `DAP_Info` 0x09 (product firmware version); it returns `0.6.1`. The firmware is built only on GitHub Actions (the `build-s3` workflow, ESP-IDF v5.5.2), and the artifact is `xrdap-esp32-s3`. Pushes to this repository do not trigger that workflow, so run `workflow_dispatch` from the Actions tab and download the artifact from the run.
 
 ## Boards
 
