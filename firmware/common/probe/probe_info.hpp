@@ -18,7 +18,7 @@ namespace XrDap
 
 /// 探针固件版本，DAP_Info 和 mDNS 里报告 / Probe firmware version, reported in DAP_Info
 /// and mDNS.
-inline constexpr char kFirmwareVersion[] = "0.6.0";
+inline constexpr char kFirmwareVersion[] = "0.6.1";
 
 /// 出厂 MAC（eFuse 中的 6 字节）/ Factory MAC (6 bytes from eFuse).
 const uint8_t* ProbeMac();
