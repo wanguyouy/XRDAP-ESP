@@ -14,7 +14,10 @@ namespace XrDap::Config
 {
 /// 通告给上位机的 DAP 包长，也是 TCP 一个包的上限 / DAP packet size advertised to the
 /// host; also the per-packet limit for TCP.
-constexpr uint16_t kDapPacketSize = 1024;
+/// Keil 的 CMSIS-DAP v2 驱动用 512 B 读缓冲读响应，报更大的包长会让剩余字节顶歪后续命令 /
+/// Keil's CMSIS-DAP v2 driver reads responses into a 512 B buffer; a larger packet size
+/// leaves the tail unread and shifts every following command.
+constexpr uint16_t kDapPacketSize = 512;
 /// DAP_Info 报的包数，客户端最多同时有这么多个请求在途 / Packet count in DAP_Info; a
 /// client keeps at most this many requests in flight.
 constexpr uint8_t kDapPacketCount = 4;
